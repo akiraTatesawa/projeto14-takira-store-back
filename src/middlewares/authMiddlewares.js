@@ -1,8 +1,12 @@
 // eslint-disable-next-line import/no-unresolved
 import { stripHtml } from "string-strip-html";
+import { compareSync } from "bcrypt";
 import chalk from "chalk";
 
-import { userRegistrationSchema } from "../schemas/authSchema.js";
+import {
+  userRegistrationSchema,
+  userSignInSchema,
+} from "../schemas/authSchema.js";
 
 import { db } from "../database/db.js";
 
@@ -15,7 +19,7 @@ export async function validateUserRegistration(req, res, next) {
   }
 
   if (stripHtml(req.body.name).result.trim().length === 0) {
-    console.log(chalk.red("\nBlank name is not valid"));
+    console.log(chalk.red("\nName is not allowed to be empty"));
     return res.sendStatus(422);
   }
 
@@ -42,5 +46,42 @@ export async function validateUserRegistration(req, res, next) {
   }
 
   res.locals.newUser = newUser;
+  return next();
+}
+
+export async function validateUserLogin(req, res, next) {
+  const { error } = userSignInSchema.validate(req.body);
+
+  if (error) {
+    console.log(error);
+    return res.sendStatus(422);
+  }
+
+  const user = {
+    ...req.body,
+    email: req.body.email.trim(),
+  };
+
+  try {
+    const registeredUser = await db.collection("accounts").findOne({
+      email: user.email,
+    });
+
+    if (!registeredUser) {
+      console.log(chalk.red("\nUser not found"));
+      return res.sendStatus(404);
+    }
+
+    if (!compareSync(user.password, registeredUser.password)) {
+      console.log(chalk.red("\nUser or password invalid"));
+      return res.sendStatus(401);
+    }
+
+    res.locals.registeredUser = registeredUser;
+  } catch (err) {
+    console.log(err);
+    return res.sendStatus(500);
+  }
+
   return next();
 }
