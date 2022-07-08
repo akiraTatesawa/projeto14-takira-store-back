@@ -8,7 +8,7 @@ import { getProductsByCategory } from "../controllers/productsController.js";
 export const productsRoute = Router();
 
 productsRoute.get(
-  "/products/:icon",
+  "/products/:categoryId",
   validateCategory,
   getProductsByCategory
 );

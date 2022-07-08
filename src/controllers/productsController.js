@@ -1,13 +1,13 @@
 import { db } from "../database/db.js";
 
-export async function getProductsByCategory(req, res) {
+export async function getProductsByCategory(_req, res) {
   const { category } = res.locals;
-  const { name } = category;
+  const _id = category._id.toString();
 
   try {
     const products = await db.collection("products").find({}).toArray();
     const productsByCategory = products.filter((product) =>
-      product.categories.includes(name)
+      product.categories.map((category) => category.toString()).includes(_id)
     );
 
     res.status(200).send(productsByCategory);
