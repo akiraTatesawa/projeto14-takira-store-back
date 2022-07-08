@@ -16,3 +16,9 @@ export async function getProductsByCategory(req, res) {
     return res.sendStatus(500);
   }
 }
+
+export async function getProductById(_req, res) {
+  const { product } = res.locals;
+
+  return res.status(200).send(product);
+}
