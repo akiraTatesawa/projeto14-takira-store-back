@@ -7,6 +7,7 @@ import chalk from "chalk";
 import { authRoute } from "./routes/authRoute.js";
 import { categoriesRoute } from "./routes/categoriesRoute.js";
 import { productsRoute } from "./routes/productsRoute.js";
+import { cartsRoute } from "./routes/cartsRoute.js";
 
 const app = express();
 
@@ -16,6 +17,8 @@ app.use(cors());
 app.use(authRoute);
 app.use(categoriesRoute);
 app.use(productsRoute);
+
+app.use(cartsRoute);
 
 app.listen(process.env.PORT || 5000, () => {
   console.log(
