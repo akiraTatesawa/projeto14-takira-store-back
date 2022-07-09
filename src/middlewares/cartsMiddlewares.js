@@ -100,3 +100,24 @@ export async function verifyCart(_req, res, next) {
     return res.sendStatus(500);
   }
 }
+
+export async function validateCartId(req, res, next) {
+  const { cartId } = req.params;
+
+  try {
+    const cart = await db
+      .collection("carts")
+      .findOne({ _id: new ObjectId(cartId) });
+
+    if (!cart) {
+      console.log(chalk.red("\nCart not found"));
+      return res.sendStatus(404);
+    }
+
+    res.locals.cart = cart;
+    return next();
+  } catch (err) {
+    console.log(err);
+    return res.sendStatus(500);
+  }
+}
