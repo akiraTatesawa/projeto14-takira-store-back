@@ -36,11 +36,23 @@ export async function deleteCartItem(req, res) {
   try {
     const userCart = await db.collection("carts").findOne({ userId });
     const updatedCart = userCart.products.filter(
-      (item) => item.productId.toString() !== productId.toString()
+      (item) => item.productId.toString() !== productId
     );
     await db
       .collection("carts")
       .updateOne({ userId }, { $set: { products: updatedCart } });
+
+    const deletedQuantity = userCart.products.find(
+      ({ productId: id }) => id.toString() === productId
+    ).quantity;
+
+    await db
+      .collection("products")
+      .updateOne(
+        { _id: new ObjectId(productId) },
+        { $inc: { numberOfCarts: -deletedQuantity } }
+      );
+
     return res.sendStatus(200);
   } catch (err) {
     console.log(err);
