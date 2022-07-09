@@ -86,14 +86,12 @@ export async function addProductToCart(req, res) {
       await db.collection("carts").updateOne(filter, pushOperation);
     }
 
-    console.log(
-      await db
-        .collection("products")
-        .updateOne(
-          { _id: productLocal._id },
-          { $set: { numberOfCarts: productLocal.numberOfCarts + 1 } }
-        )
-    );
+    await db
+      .collection("products")
+      .updateOne(
+        { _id: productLocal._id },
+        { $set: { numberOfCarts: productLocal.numberOfCarts + 1 } }
+      );
 
     const updatedCart = await db.collection("carts").findOne({ userId });
 
@@ -124,6 +122,42 @@ export async function getUserCartData(_req, res) {
     const resData = { total, cartId: cart._id };
 
     return res.status(200).send(resData);
+  } catch (err) {
+    console.log(err);
+    return res.sendStatus(500);
+  }
+}
+
+export async function finishOrder(_req, res) {
+  const { cart } = res.locals;
+
+  const query = cart.products.map((product) => ({
+    id: new ObjectId(product.productId),
+    qt: product.quantity,
+  }));
+
+  try {
+    // transfer qt from numberOfCartsToPurchased
+    query.forEach(async ({ id, qt }) => {
+      const product = await db
+        .collection("products")
+        .findOne({ _id: new ObjectId(id) });
+
+      await db.collection("products").updateOne(
+        { _id: product._id },
+        {
+          $set: {
+            numberOfCarts: product.numberOfCarts - qt,
+            numberOfPurchases: product.numberOfPurchases + qt,
+          },
+        }
+      );
+    });
+
+    // delete cart after checkout
+    await db.collection("carts").deleteOne({ _id: cart._id });
+
+    return res.sendStatus(200);
   } catch (err) {
     console.log(err);
     return res.sendStatus(500);
