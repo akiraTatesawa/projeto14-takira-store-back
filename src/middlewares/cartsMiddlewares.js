@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 
-import { db } from "../database/db";
-import { cartSchema } from "../schemas/cartSchema";
+import { db } from "../database/db.js";
+import { cartSchema } from "../schemas/cartSchema.js";
 
 export function validateProductId(req, res, next) {
   const { productId } = req.params;
@@ -45,6 +45,31 @@ export function validateItem(req, res, next) {
     if (!product) {
       console.log(chalk.red("\nInvalid product"));
       return res.sendStatus(404);
+    }
+
+    return next();
+  } catch (err) {
+    console.log(err);
+    return res.sendStatus(500);
+  }
+}
+
+export async function verifyCart(_req, res, next) {
+  // create a cart if not exists
+  const { session } = res.locals;
+  const { userId } = session;
+
+  try {
+    const cart = await db.collection("carts").findOne({ userId });
+
+    if (!cart) {
+      const cartTemplate = {
+        userId,
+        timestamp: Date.now(),
+        products: [],
+      };
+
+      await db.collection("carts").insertOne(cartTemplate);
     }
 
     return next();
