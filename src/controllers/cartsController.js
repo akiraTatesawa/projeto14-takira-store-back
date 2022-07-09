@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { db } from "../database/db.js";
 
 export async function getCartItems(_req, res) {
@@ -5,10 +6,14 @@ export async function getCartItems(_req, res) {
 
   try {
     const userCart = await db.collection("carts").findOne({ userId });
-    const products = await db.collection("products").find({ _id: { $in: userCart.products.map(({ productId }) => productId ) } });
-    const responseData = products.map(product => ({
+    const products = await db.collection("products").find({
+      _id: { $in: userCart.products.map(({ productId }) => productId) },
+    });
+    const responseData = products.map((product) => ({
       ...product,
-      quantity: userCart.products.find(({ productId }) => productId.toString() === product._id.toString()).quantity,
+      quantity: userCart.products.find(
+        ({ productId }) => productId.toString() === product._id.toString()
+      ).quantity,
     }));
     return res.status(200).send(responseData);
   } catch (err) {
@@ -23,11 +28,12 @@ export async function deleteCartItem(req, res) {
 
   try {
     const userCart = await db.collection("carts").findOne({ userId });
-    const updatedCart = userCart.products.filter(item => item.productId.toString() !== productId.toString());
-    await db.collection("carts").updateOne(
-      { userId },
-      { $set: { products: updatedCart } }
+    const updatedCart = userCart.products.filter(
+      (item) => item.productId.toString() !== productId.toString()
     );
+    await db
+      .collection("carts")
+      .updateOne({ userId }, { $set: { products: updatedCart } });
     return res.sendStatus(200);
   } catch (err) {
     console.log(err);
@@ -66,6 +72,32 @@ export async function addProductToCart(req, res) {
     return res.status(200).send(updatedCart);
   } catch (error) {
     console.log(error);
+    return res.sendStatus(500);
+  }
+}
+
+export async function getUserCartData(_req, res) {
+  const { cart } = res.locals;
+
+  const query = cart.products.map((product) => new ObjectId(product.productId));
+
+  try {
+    const productsFromCart = await db
+      .collection("products")
+      .find({ _id: { $in: query } })
+      .toArray();
+
+    let total = 0;
+
+    for (let i = 0; i < productsFromCart.length; i += 1) {
+      total += productsFromCart[i].price * cart.products[i].quantity;
+    }
+
+    const resData = { total, cartId: cart._id };
+
+    return res.status(200).send(resData);
+  } catch (err) {
+    console.log(err);
     return res.sendStatus(500);
   }
 }

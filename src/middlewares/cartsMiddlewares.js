@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { ObjectId } from "mongodb";
 
 import { db } from "../database/db.js";
@@ -28,7 +29,7 @@ export function validateProductId(req, res, next) {
   }
 }
 
-export function validateItem(req, res, next) {
+export async function validateItem(req, res, next) {
   const { productId, quantity } = req.body;
 
   const { error } = cartSchema.validate({ productId, quantity });
@@ -38,7 +39,7 @@ export function validateItem(req, res, next) {
   }
 
   try {
-    const product = db
+    const product = await db
       .collection("products")
       .findOne({ _id: new ObjectId(productId) });
 
@@ -54,7 +55,7 @@ export function validateItem(req, res, next) {
   }
 }
 
-export async function verifyCart(_req, res, next) {
+export async function createCart(_req, res, next) {
   // create a cart if not exists
   const { session } = res.locals;
   const { userId } = session;
@@ -72,6 +73,26 @@ export async function verifyCart(_req, res, next) {
       await db.collection("carts").insertOne(cartTemplate);
     }
 
+    return next();
+  } catch (err) {
+    console.log(err);
+    return res.sendStatus(500);
+  }
+}
+
+export async function verifyCart(_req, res, next) {
+  const { session } = res.locals;
+  const { userId } = session;
+
+  try {
+    const cart = await db.collection("carts").findOne({ userId });
+
+    if (!cart) {
+      console.log(chalk.red("\nCart not found"));
+      return res.sendStatus(404);
+    }
+
+    res.locals.cart = cart;
     return next();
   } catch (err) {
     console.log(err);
