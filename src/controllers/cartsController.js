@@ -1,3 +1,5 @@
+import { ObjectId } from "mongodb";
+
 import { db } from "../database/db.js";
 
 export async function getCartItems(_req, res) {
@@ -5,12 +7,23 @@ export async function getCartItems(_req, res) {
 
   try {
     const userCart = await db.collection("carts").findOne({ userId });
-    const products = await db.collection("products").find({ _id: { $in: userCart.products.map(({ productId }) => productId ) } });
-    const responseData = products.map(product => ({
+    const products = await db
+      .collection("products")
+      .find({
+        _id: {
+          $in: userCart.products.map(
+            ({ productId }) => new ObjectId(productId)
+          ),
+        },
+      })
+      .toArray();
+    const responseData = products.map((product) => ({
       ...product,
-      quantity: userCart.products.find(({ productId }) => productId.toString() === product._id.toString()).quantity,
+      quantity: userCart.products.find(
+        ({ productId }) => productId.toString() === product._id.toString()
+      ).quantity,
     }));
-    return res.status(200).send(responseData);
+    return res.status(200).send(responseData.reverse());
   } catch (err) {
     console.log(err);
     return res.sendStatus(500);
@@ -23,11 +36,12 @@ export async function deleteCartItem(req, res) {
 
   try {
     const userCart = await db.collection("carts").findOne({ userId });
-    const updatedCart = userCart.products.filter(item => item.productId.toString() !== productId.toString());
-    await db.collection("carts").updateOne(
-      { userId },
-      { $set: { products: updatedCart } }
+    const updatedCart = userCart.products.filter(
+      (item) => item.productId.toString() !== productId.toString()
     );
+    await db
+      .collection("carts")
+      .updateOne({ userId }, { $set: { products: updatedCart } });
     return res.sendStatus(200);
   } catch (err) {
     console.log(err);

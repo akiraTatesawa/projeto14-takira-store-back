@@ -28,7 +28,7 @@ export function validateProductId(req, res, next) {
   }
 }
 
-export function validateItem(req, res, next) {
+export async function validateItem(req, res, next) {
   const { productId, quantity } = req.body;
 
   const { error } = cartSchema.validate({ productId, quantity });
@@ -38,7 +38,7 @@ export function validateItem(req, res, next) {
   }
 
   try {
-    const product = db
+    const product = await db
       .collection("products")
       .findOne({ _id: new ObjectId(productId) });
 
