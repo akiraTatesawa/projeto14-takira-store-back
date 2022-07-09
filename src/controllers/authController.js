@@ -51,7 +51,6 @@ export async function postSignIn(_req, res) {
     }
 
     const responseData = {
-      userId,
       name: registeredUser.name,
       token,
     };

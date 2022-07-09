@@ -1,5 +1,4 @@
 import { ObjectId } from "mongodb";
-
 import { db } from "../database/db.js";
 
 export async function getCartItems(_req, res) {
@@ -50,7 +49,7 @@ export async function deleteCartItem(req, res) {
 }
 
 export async function addProductToCart(req, res) {
-  const { session } = res.locals;
+  const { session, productLocal } = res.locals;
   const { userId } = session;
 
   try {
@@ -75,11 +74,46 @@ export async function addProductToCart(req, res) {
       await db.collection("carts").updateOne(filter, pushOperation);
     }
 
+    console.log(
+      await db
+        .collection("products")
+        .updateOne(
+          { _id: productLocal._id },
+          { $set: { numberOfCarts: productLocal.numberOfCarts + 1 } }
+        )
+    );
+
     const updatedCart = await db.collection("carts").findOne({ userId });
 
     return res.status(200).send(updatedCart);
   } catch (error) {
     console.log(error);
+    return res.sendStatus(500);
+  }
+}
+
+export async function getUserCartData(_req, res) {
+  const { cart } = res.locals;
+
+  const query = cart.products.map((product) => new ObjectId(product.productId));
+
+  try {
+    const productsFromCart = await db
+      .collection("products")
+      .find({ _id: { $in: query } })
+      .toArray();
+
+    let total = 0;
+
+    for (let i = 0; i < productsFromCart.length; i += 1) {
+      total += productsFromCart[i].price * cart.products[i].quantity;
+    }
+
+    const resData = { total, cartId: cart._id };
+
+    return res.status(200).send(resData);
+  } catch (err) {
+    console.log(err);
     return res.sendStatus(500);
   }
 }
