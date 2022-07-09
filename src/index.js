@@ -17,7 +17,6 @@ app.use(cors());
 app.use(authRoute);
 app.use(categoriesRoute);
 app.use(productsRoute);
-
 app.use(cartsRoute);
 
 app.listen(process.env.PORT || 5000, () => {
