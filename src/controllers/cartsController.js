@@ -42,7 +42,7 @@ export async function deleteCartItem(req, res) {
 }
 
 export async function addProductToCart(req, res) {
-  const { session } = res.locals;
+  const { session, productLocal } = res.locals;
   const { userId } = session;
 
   try {
@@ -66,6 +66,15 @@ export async function addProductToCart(req, res) {
 
       await db.collection("carts").updateOne(filter, pushOperation);
     }
+
+    console.log(
+      await db
+        .collection("products")
+        .updateOne(
+          { _id: productLocal._id },
+          { $set: { numberOfCarts: productLocal.numberOfCarts + 1 } }
+        )
+    );
 
     const updatedCart = await db.collection("carts").findOne({ userId });
 

@@ -48,6 +48,7 @@ export async function validateItem(req, res, next) {
       return res.sendStatus(404);
     }
 
+    res.locals.productLocal = product;
     return next();
   } catch (err) {
     console.log(err);
