@@ -7,7 +7,7 @@ export async function validateCategory(req, res, next) {
   const { categoryId } = req.params;
 
   if (!categoryId) {
-    console.log(chalk.red("Error: categoryId is required"));
+    console.log(chalk.red("CategoryId is required"));
     return res.status(400).send("Missing categoryId parameter");
   }
 
@@ -22,8 +22,8 @@ export async function validateCategory(req, res, next) {
     }
 
     res.locals.category = category;
-    next();
-  } catch (error) {
+    return next();
+  } catch (err) {
     console.log(err);
     return res.sendStatus(500);
   }
