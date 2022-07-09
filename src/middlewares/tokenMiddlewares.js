@@ -19,7 +19,7 @@ export async function validateToken(req, res, next) {
     }
 
     res.locals.session = session;
-    next();
+    return next();
   } catch (error) {
     console.log(error);
     return res.sendStatus(500);
