@@ -14,10 +14,13 @@ export async function verifyUserPurchases(req, res, next) {
       return res.sendStatus(404);
     }
 
-    const purchasesInfo = userPurchases.map(({ total, productsInfo }) => ({
-      total,
-      productsInfo,
-    }));
+    const purchasesInfo = userPurchases.map(
+      ({ total, productsInfo, date }) => ({
+        total,
+        productsInfo,
+        date,
+      })
+    );
 
     res.locals.purchases = purchasesInfo;
     return next();
