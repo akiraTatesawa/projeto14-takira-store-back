@@ -15,7 +15,13 @@ export const productsRoute = Router();
 
 productsRoute.get(
   "/products/:categoryId",
+  validateToken,
   validateCategory,
   getProductsByCategory
 );
-productsRoute.get("/product/:productId", validateProduct, getProductById);
+productsRoute.get(
+  "/product/:productId",
+  validateToken,
+  validateProduct,
+  getProductById
+);
