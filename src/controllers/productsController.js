@@ -22,3 +22,18 @@ export async function getProductById(_req, res) {
 
   return res.status(200).send(product);
 }
+
+export async function getBestSellers(_req, res) {
+  try {
+    const bestSellers = await db
+      .collection("products")
+      .find({})
+      .sort({ numberOfPurchases: -1 })
+      .limit(2)
+      .toArray();
+    res.status(200).send(bestSellers);
+  } catch (err) {
+    console.log(err);
+    return res.sendStatus(500);
+  }
+}
