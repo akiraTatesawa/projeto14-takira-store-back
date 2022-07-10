@@ -1,5 +1,7 @@
 import { ObjectId } from "mongodb";
+import dayjs from "dayjs";
 import { db } from "../database/db.js";
+import { calcCartTotal } from "../utils/calcCartTotal.js";
 
 export async function getCartItems(_req, res) {
   console.log("cheguei aqui");
@@ -108,19 +110,8 @@ export async function addProductToCart(req, res) {
 export async function getUserCartData(_req, res) {
   const { cart } = res.locals;
 
-  const query = cart.products.map((product) => new ObjectId(product.productId));
-
   try {
-    const productsFromCart = await db
-      .collection("products")
-      .find({ _id: { $in: query } })
-      .toArray();
-
-    let total = 0;
-
-    for (let i = 0; i < productsFromCart.length; i += 1) {
-      total += productsFromCart[i].price * cart.products[i].quantity;
-    }
+    const total = await calcCartTotal(cart, res);
 
     const resData = { total, cartId: cart._id };
 
@@ -157,6 +148,15 @@ export async function finishOrder(_req, res) {
       );
     });
 
+    const total = await calcCartTotal(cart, res);
+
+    // register the purchase
+    await db.collection("purchases").insertOne({
+      ...cart,
+      total,
+      date: dayjs().format("DD/MM/YYYY"),
+      timestamp: Date.now(),
+    });
     // delete cart after checkout
     await db.collection("carts").deleteOne({ _id: cart._id });
 

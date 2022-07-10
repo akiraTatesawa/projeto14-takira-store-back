@@ -8,6 +8,7 @@ import { authRoute } from "./routes/authRoute.js";
 import { categoriesRoute } from "./routes/categoriesRoute.js";
 import { productsRoute } from "./routes/productsRoute.js";
 import { cartsRoute } from "./routes/cartsRoute.js";
+import { purchasesRoute } from "./routes/purchasesRoute.js";
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(authRoute);
 app.use(categoriesRoute);
 app.use(productsRoute);
 app.use(cartsRoute);
+app.use(purchasesRoute);
 
 app.listen(process.env.PORT || 5000, () => {
   console.log(
