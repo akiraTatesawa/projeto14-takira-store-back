@@ -2,20 +2,23 @@ import { ObjectId } from "mongodb";
 import { db } from "../database/db.js";
 
 export async function getCartItems(_req, res) {
+  console.log("cheguei aqui");
   const { userId } = res.locals.session;
 
   try {
     const userCart = await db.collection("carts").findOne({ userId });
-    const products = await db
-      .collection("products")
-      .find({
-        _id: {
-          $in: userCart.products.map(
-            ({ productId }) => new ObjectId(productId)
-          ),
-        },
-      })
-      .toArray();
+    const products = userCart
+      ? await db
+          .collection("products")
+          .find({
+            _id: {
+              $in: userCart.products.map(
+                ({ productId }) => new ObjectId(productId)
+              ),
+            },
+          })
+          .toArray()
+      : [];
     const responseData = products.map((product) => ({
       ...product,
       quantity: userCart.products.find(
