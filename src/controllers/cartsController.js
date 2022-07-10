@@ -1,10 +1,9 @@
 import { ObjectId } from "mongodb";
 import dayjs from "dayjs";
 import { db } from "../database/db.js";
-import { calcCartTotal } from "../utils/calcCartTotal.js";
+import { setCartInfo } from "../utils/setCartInfo.js";
 
 export async function getCartItems(_req, res) {
-  console.log("cheguei aqui");
   const { userId } = res.locals.session;
 
   try {
@@ -111,7 +110,7 @@ export async function getUserCartData(_req, res) {
   const { cart } = res.locals;
 
   try {
-    const total = await calcCartTotal(cart, res);
+    const { total } = await setCartInfo(cart, res);
 
     const resData = { total, cartId: cart._id };
 
@@ -148,12 +147,13 @@ export async function finishOrder(_req, res) {
       );
     });
 
-    const total = await calcCartTotal(cart, res);
+    const { total, productsInfo } = await setCartInfo(cart, res);
 
     // register the purchase
     await db.collection("purchases").insertOne({
       ...cart,
       total,
+      productsInfo,
       date: dayjs().format("DD/MM/YYYY"),
       timestamp: Date.now(),
     });

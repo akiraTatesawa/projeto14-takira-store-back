@@ -1,5 +1,3 @@
-import chalk from "chalk";
-
 import { db } from "../database/db.js";
 
 export async function verifyUserPurchases(req, res, next) {
@@ -12,12 +10,16 @@ export async function verifyUserPurchases(req, res, next) {
       .toArray();
 
     if (userPurchases.length === 0) {
-      console.log(chalk.red("Purchases not found"));
-      // use this status on front
+      console.log("Purchases not found");
       return res.sendStatus(404);
     }
 
-    res.locals.purchases = userPurchases;
+    const purchasesInfo = userPurchases.map(({ total, productsInfo }) => ({
+      total,
+      productsInfo,
+    }));
+
+    res.locals.purchases = purchasesInfo;
     return next();
   } catch (err) {
     console.log(err);
