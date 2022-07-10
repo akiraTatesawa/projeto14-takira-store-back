@@ -9,6 +9,7 @@ import {
 import {
   getProductById,
   getProductsByCategory,
+  getBestSellers,
 } from "../controllers/productsController.js";
 
 export const productsRoute = Router();
@@ -25,3 +26,4 @@ productsRoute.get(
   validateProduct,
   getProductById
 );
+productsRoute.get("/best-sellers", validateToken, getBestSellers);
