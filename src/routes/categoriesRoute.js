@@ -6,4 +6,4 @@ import { validateToken } from "../middlewares/tokenMiddlewares.js";
 
 export const categoriesRoute = Router();
 
-categoriesRoute.get("/categories", getCategories);
+categoriesRoute.get("/categories", validateToken, getCategories);
