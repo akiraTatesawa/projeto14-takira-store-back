@@ -61,3 +61,16 @@ export async function postSignIn(_req, res) {
     return res.sendStatus(500);
   }
 }
+
+export async function deleteSession(_req, res) {
+  const { session } = res.locals;
+
+  try {
+    await db.collection("sessions").deleteOne({ userId: session.userId });
+
+    return res.sendStatus(200);
+  } catch (err) {
+    console.log(err);
+    return res.sendStatus(500);
+  }
+}
