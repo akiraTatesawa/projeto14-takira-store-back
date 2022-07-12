@@ -11,15 +11,20 @@ export async function setCartInfo(cart, res) {
       .find({ _id: { $in: query } })
       .toArray();
 
-    const productsInfo = productsFromCart.map(({ name, price }) => ({
+    const obj = {};
+    // eslint-disable-next-line no-return-assign
+    productsFromCart.forEach((x) => (obj[x._id] = x));
+    const ordered = query.map((key) => obj[key]);
+
+    const productsInfo = ordered.map(({ name, price }) => ({
       name,
       price,
     }));
 
     let total = 0;
 
-    for (let i = 0; i < productsFromCart.length; i += 1) {
-      total += productsFromCart[i].price * cart.products[i].quantity;
+    for (let i = 0; i < ordered.length; i += 1) {
+      total += ordered[i].price * cart.products[i].quantity;
     }
 
     return { productsInfo, total };
